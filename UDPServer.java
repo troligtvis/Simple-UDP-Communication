@@ -74,24 +74,31 @@ public class UDPServer {
 					
 					sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 				} else{
-					int guessedNumber = Integer.parseInt(new String(receivePacket.getData()).trim());
-					System.out.println("RECEIVED: " + guessedNumber);
+					String guessStr = new String(receivePacket.getData()).trim();
+					int number = checkAndStripToNumber(guessStr);
+					if(number != -1){
+						int guessedNumber = number;
+						System.out.println("RECEIVED: " + guessedNumber);
 			
-					if(randomNumber > guessedNumber){
-						answer = "LO";
-					} else if(randomNumber < guessedNumber){
-						answer = "HI";
-					} else {
-						answer = "CORRECT";
-					}
+						if(randomNumber > guessedNumber){
+							answer = "LO";
+						} else if(randomNumber < guessedNumber){
+							answer = "HI";
+						} else {
+							answer = "CORRECT";
+						}
 					
-					sendData = answer.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+						sendData = answer.getBytes();
+						sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 				
-					if(answer.equals("CORRECT")){
-						currentClientIP = null;
-						currentClientPort = 0;
-						isGameStarted = false;
+						if(answer.equals("CORRECT")){
+							currentClientIP = null;
+							currentClientPort = 0;
+							isGameStarted = false;
+						}
+					} else {
+						sendData = errorMsg.getBytes();
+						sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 					}
 				}
 				
@@ -108,6 +115,36 @@ public class UDPServer {
 	
 	public static void startGame(){
 		randomNumber = randomizeNumber();
+	}
+	
+	public static int checkAndStripToNumber(String checkMe){
+		if(checkMe.length() >= 6 ){
+			String first = checkMe.substring(0, 6);
+			String second = checkMe.substring(first.length(), checkMe.length());
+			String guessMsg = "GUESS ";
+			
+			if(first.equals(guessMsg)){
+				if(isNumeric(second)){
+					int guessNr = Integer.parseInt(second);
+					return guessNr;
+				} else {
+					return -1;
+				}
+			} else {
+				return -1;
+			}
+		}
+		return -1;
+	}
+	
+	public static boolean isNumeric(String possibleNumericString){
+		try{  
+		    int i = Integer.parseInt(possibleNumericString);  
+		  } catch(NumberFormatException nfe){  
+		    return false;  
+		  }
+
+		return true;  
 	}
 	
 	public static int randomizeNumber(){
