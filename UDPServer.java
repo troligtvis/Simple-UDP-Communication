@@ -38,78 +38,88 @@ public class UDPServer {
 
 		byte[] receiveData = new byte[1024];
 		byte[] sendData = new byte[1024];
-
-		while(true){
-			receivePacket = new DatagramPacket(receiveData, receiveData.length);
-			serverSocket.receive(receivePacket);
 		
-			System.out.println("WHO:" + receivePacket.getSocketAddress());
+		serverSocket.setSoTimeout(5000);
+		while(true){
+			try{
+				receivePacket = new DatagramPacket(receiveData, receiveData.length);
+				serverSocket.receive(receivePacket);
 			
-			IPAddress = receivePacket.getAddress();
-			port = receivePacket.getPort();
-			
-			String initMsg = new String(receivePacket.getData()).trim();
-			
-			if(currentClientIP == null){
-				if(initMsg.equals(helloMsg)){
-					currentClientIP = IPAddress;
-					currentClientPort = port;
-					sendData = okMsg.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-				} else {
-					sendData = errorMsg.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-				}
-			} else if(currentClientIP.equals(IPAddress) && currentClientPort == port) {
-				if(!isGameStarted){
-					String startClientMsg = new String(receivePacket.getData()).trim();
-					if(startClientMsg.equals(startMsg)){
-						startGame();
-						sendData = readyMsg.getBytes();
+				System.out.println("WHO:" + receivePacket.getSocketAddress());
+				
+				IPAddress = receivePacket.getAddress();
+				port = receivePacket.getPort();
+				
+				String initMsg = new String(receivePacket.getData()).trim();
+				
+				if(currentClientIP == null){
+					if(initMsg.equals(helloMsg)){
+						currentClientIP = IPAddress;
+						currentClientPort = port;
+						sendData = okMsg.getBytes();
 						sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-						isGameStarted = true;
 					} else {
 						sendData = errorMsg.getBytes();
+						sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 					}
-					
-					sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-				} else{
-					String guessStr = new String(receivePacket.getData()).trim();
-					int number = checkAndStripToNumber(guessStr);
-					if(number != -1){
-						int guessedNumber = number;
-						System.out.println("RECEIVED: " + guessedNumber);
-			
-						if(randomNumber > guessedNumber){
-							answer = "LO";
-						} else if(randomNumber < guessedNumber){
-							answer = "HI";
+				} else if(currentClientIP.equals(IPAddress) && currentClientPort == port) {
+					if(!isGameStarted){
+						String startClientMsg = new String(receivePacket.getData()).trim();
+						if(startClientMsg.equals(startMsg)){
+							startGame();
+							sendData = readyMsg.getBytes();
+							sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+							isGameStarted = true;
 						} else {
-							answer = "CORRECT";
+							sendData = errorMsg.getBytes();
 						}
-					
-						sendData = answer.getBytes();
+						
 						sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+					} else{
+						String guessStr = new String(receivePacket.getData()).trim();
+						int number = checkAndStripToNumber(guessStr);
+						if(number != -1){
+							int guessedNumber = number;
+							System.out.println("RECEIVED: " + guessedNumber);
 				
-						if(answer.equals("CORRECT")){
-							currentClientIP = null;
-							currentClientPort = 0;
-							isGameStarted = false;
+							if(randomNumber > guessedNumber){
+								answer = "LO";
+							} else if(randomNumber < guessedNumber){
+								answer = "HI";
+							} else {
+								answer = "CORRECT";
+							}
+						
+							sendData = answer.getBytes();
+							sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+					
+							if(answer.equals("CORRECT")){
+								currentClientIP = null;
+								currentClientPort = 0;
+								isGameStarted = false;
+							}
+						} else {
+							sendData = errorMsg.getBytes();
+							sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 						}
-					} else {
-						sendData = errorMsg.getBytes();
-						sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 					}
+					
+				} else {
+					sendData = busyMsg.getBytes();
+					sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 				}
 				
-			} else {
-				sendData = busyMsg.getBytes();
-				sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+				serverSocket.send(sendPacket);
+				receiveData = new byte[1024];
+				sendData = new byte[1024];
+			}catch(SocketException e){
+				System.out.println("Socket error: " + e.getMessage());
+			}catch(SocketTimeoutException s){
+				System.out.println("SKRIV HÄR VAD SOM HÄNDER");
+			}finally{
+				if (serverSocket != null) 
+					serverSocket.close();
 			}
-			
-			serverSocket.send(sendPacket);
-			receiveData = new byte[1024];
-			sendData = new byte[1024];
 		}
 	}
 	
