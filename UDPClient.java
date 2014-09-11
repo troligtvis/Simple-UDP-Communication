@@ -5,7 +5,7 @@ public class UDPClient {
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-
+		//hej
 		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DatagramSocket clientSocket = new DatagramSocket();
