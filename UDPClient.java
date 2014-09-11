@@ -9,21 +9,27 @@ public class UDPClient {
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = InetAddress.getByName("localhost");
+		clientSocket.setSoTimeout(20000);
 		try{
 			while(true){
-				byte[] sendData = new byte[1024];
-				byte[] receiveData = new byte[1024];
-				String sentence = inFromUser.readLine();
-				sendData = sentence.getBytes();
-				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 6701);
-				clientSocket.send(sendPacket);
-				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-				clientSocket.receive(receivePacket);
-				String modifiedSentence = new String(receivePacket.getData());
-				System.out.println("FROM SERVER: " + modifiedSentence);
-				if(modifiedSentence.trim().equals("BYE")){
-					//denna if-sats funkar inte, eftersom klienten aldrig skickar någonting 
-					break;
+				
+					byte[] sendData = new byte[1024];
+					byte[] receiveData = new byte[1024];
+					String sentence = inFromUser.readLine();
+					sendData = sentence.getBytes();
+					DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 6701);
+					clientSocket.send(sendPacket);
+				try{
+					DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+					clientSocket.receive(receivePacket);
+					String modifiedSentence = new String(receivePacket.getData());
+					System.out.println("FROM SERVER: " + modifiedSentence);
+					if(modifiedSentence.trim().equals("BYE")){
+						//denna if-sats funkar inte, eftersom klienten aldrig skickar någonting 
+						break;
+					}
+				}catch(SocketTimeoutException e){
+					System.out.println("Server not responding");
 				}
 			}
 		}catch(SocketException e){
