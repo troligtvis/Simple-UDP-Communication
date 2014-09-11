@@ -5,51 +5,88 @@ import java.util.*;
 
 public class UDPServer {
 
-	private static int currentClient;
+	//private static InetAddress currentClientIP;
+	//private static int currentClientPort;
 	private static String answer;
-
+	private static int randomNumber;
+	
 	
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		
 		DatagramSocket serverSocket = new DatagramSocket(9876);
+		DatagramPacket receivePacket;
+		DatagramPacket sendPacket;
+		InetAddress IPAddress;
+		int port;
+		InetAddress currentClientIP = null;
+		int currentClientPort = 0;
 		
 		
-		int randomNumber = randomizeNumber();
+		String helloMsg = "HELLO";
+		String okMsg = "OK";
+		String startMsg = "START";
+		String readyMsg = "READY";
+		String busyMsg = "BUSY";
+		String errorMsg = "ERROR";
+		
+		
+		//init();
+		
+		byte[] receiveData = new byte[1024];
+		byte[] sendData = new byte[1024];
 		
 		while(true){
 			
-			byte[] receiveData = new byte[1024];
-			byte[] sendData = new byte[1024];
-			
-			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			serverSocket.receive(receivePacket);
-			System.out.println("Nanting:" + receivePacket.getSocketAddress());
-
-			int guessedNumber = Integer.parseInt(new String(receivePacket.getData()).trim());
+			System.out.println("VEM:" + receivePacket.getSocketAddress());
 			
-			System.out.println("RECEIVED: " + guessedNumber);
+			IPAddress = receivePacket.getAddress();
+			port = receivePacket.getPort();
 			
-			InetAddress IPAddress = receivePacket.getAddress();
-			int port = receivePacket.getPort();
-			
-			if(randomNumber > guessedNumber){
-				answer = "LO";
-			} else if(randomNumber < guessedNumber){
-				answer = "HI";
-			} else {
-				answer = "CORRECT";
+			if(currentClientIP == null){
+				currentClientIP = IPAddress;
+				currentClientPort = port;
 			}
 			
-			sendData = answer.getBytes();
-			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+			if(currentClientIP.equals(IPAddress) && currentClientPort == port) {
+				int guessedNumber = Integer.parseInt(new String(receivePacket.getData()).trim());
+				
+				System.out.println("RECEIVED: " + guessedNumber);
 			
-			serverSocket.send(sendPacket);
+				if(randomNumber > guessedNumber){
+					answer = "LO";
+				} else if(randomNumber < guessedNumber){
+					answer = "HI";
+				} else {
+					answer = "CORRECT";
+				}
+			
+				sendData = answer.getBytes();
+				sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+			
+				receiveData = new byte[1024];
+				sendData = new byte[1024];
+			
+				serverSocket.send(sendPacket);
+			} else {
+				sendData = busyMsg.getBytes();
+				sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+				serverSocket.send(sendPacket);
+			}
+			
 		}
 	}
 	
-	public static void startGame(){
+	public static void init(){
+		byte[] receiveData = new byte[1024];
+		byte[] sendData = new byte[1024];
 		
+		
+	}
+	
+	public static void startGame(){
+		randomNumber = randomizeNumber();
 	}
 	
 	public static int randomizeNumber(){

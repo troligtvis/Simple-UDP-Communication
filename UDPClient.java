@@ -6,9 +6,11 @@ public class UDPClient {
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 
+		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = InetAddress.getByName("localhost");
+		while(true){
 		byte[] sendData = new byte[1024];
 		byte[] receiveData = new byte[1024];
 		String sentence = inFromUser.readLine();
@@ -19,7 +21,9 @@ public class UDPClient {
 		clientSocket.receive(receivePacket);
 		String modifiedSentence = new String(receivePacket.getData());
 		System.out.println("FROM SERVER: " + modifiedSentence);
-		clientSocket.close();
+		}
+		
+		//clientSocket.close();
 	}
 
 }
