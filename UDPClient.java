@@ -15,12 +15,16 @@ public class UDPClient {
 				byte[] receiveData = new byte[1024];
 				String sentence = inFromUser.readLine();
 				sendData = sentence.getBytes();
-				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 6700);
+				DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, 6701);
 				clientSocket.send(sendPacket);
 				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 				clientSocket.receive(receivePacket);
 				String modifiedSentence = new String(receivePacket.getData());
 				System.out.println("FROM SERVER: " + modifiedSentence);
+				if(modifiedSentence.trim().equals("BYE")){
+					//denna if-sats funkar inte, eftersom klienten aldrig skickar någonting 
+					break;
+				}
 			}
 		}catch(SocketException e){
 			System.out.println("Socket error: " + e.getMessage());
